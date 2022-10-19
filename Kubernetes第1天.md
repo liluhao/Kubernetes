@@ -66,7 +66,7 @@
 
 一个kubernetes集群主要是由**控制节点(master)**、**工作节点(node)**构成，每个节点上都会安装不同的组件。
 
-**master：集群的控制平面，负责集群的决策  (  管理  )**
+**master：集群的控制平面，负责集群的决策  (  管理  )，共有四个组件**
 
 > **ApiServer** : 资源操作的唯一入口，接收用户输入的命令，提供认证、授权、API注册和发现等机制
 >
@@ -78,9 +78,9 @@
 
 **node：集群的数据平面，负责为容器提供运行环境 ( 干活 ) **
 
-> **Kubelet** : 负责维护容器的生命周期，即通过控制docker，来创建、更新、销毁容器
+> **Kubelet** : 负责维护容器的生命周期，即通过控制docker，来创建、更新、销毁容器（酷ber累特）
 >
-> **KubeProxy** : 负责提供集群内部的服务发现和负载均衡
+> **KubeProxy** : 负责提供集群内部的服务发现和负载均衡（酷ber pro柯sei）
 >
 > **Docker** : 负责节点上容器的各种操作
 
@@ -200,6 +200,8 @@ kubernetes有多种部署方式，目前主流的方式有kubeadm、minikube、�
 
 ### 环境初始化
 
+以下9步虽然写的是master节点，但其实是三个主机都需要操作以下的步骤
+
 1)    检查操作系统的版本
 
 ~~~powershell
@@ -252,7 +254,7 @@ kubernetes和docker在运行中会产生大量的iptables规则，为了不让�
 
 ~~~powershell
 # 编辑 /etc/selinux/config 文件，修改SELINUX的值为disabled
-# 注意修改完毕之后需要重启linux服务
+# 注意修改完毕之后需要重启linux服务（即后面的第9步，可以统一到第9步再重启）
 SELINUX=disabled
 ~~~
 
@@ -267,10 +269,18 @@ swap分区指的是虚拟内存分区，它的作用是在物理内存使用完�
 ~~~powershell
 # 编辑分区配置文件/etc/fstab，注释掉swap分区一行
 # 注意修改完毕之后需要重启linux服务
- UUID=455cc753-7a60-4c17-a424-7741728c44a1 /boot    xfs     defaults        0 0
- /dev/mapper/centos-home /home                      xfs     defaults        0 0
 # /dev/mapper/centos-swap swap                      swap    defaults        0 0
 ~~~
+
+修改前：
+
+![image-20221019213002872](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019213002872.png)
+
+![](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019213340803.png)
+
+修改后：
+
+![image-20221019213116699](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019213116699.png)
 
 7）修改linux的内核参数
 
@@ -290,6 +300,8 @@ net.ipv4.ip_forward = 1
 # 查看网桥过滤模块是否加载成功
 [root@master ~]# lsmod | grep br_netfilter
 ~~~
+
+![image-20221019213956402](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019213956402.png)
 
 8）配置ipvs功能
 
@@ -321,6 +333,10 @@ EOF
 [root@master ~]# lsmod | grep -e ip_vs -e nf_conntrack_ipv4
 ~~~
 
+![image-20221019214408211](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019214408211.png)
+
+![image-20221019214259015](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019214259015.png)
+
 9） 重启服务器
 
 上面步骤完成之后，需要重新启动linux系统
@@ -329,7 +345,11 @@ EOF
 [root@master ~]# reboot
 ~~~
 
+![image-20221019214551980](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019214551980.png)
+
 ### 安装docker
+
+以下虽然写的是master节点，但其实是三个主机都需要操作以下的步骤
 
 ~~~powershell
 # 1 切换镜像源
@@ -344,6 +364,7 @@ EOF
 
 # 4 添加一个配置文件
 # Docker在默认情况下使用的Cgroup Driver为cgroupfs，而kubernetes推荐使用systemd来代替cgroupfs
+# 切换默认仓库，原本是国外的仓库，现在切换成阿里云的仓库
 [root@master ~]# mkdir /etc/docker
 [root@master ~]# cat <<EOF >  /etc/docker/daemon.json
 {
@@ -360,7 +381,11 @@ EOF
 [root@master ~]# docker version
 ~~~
 
+![image-20221019215103331](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019215103331.png)
+
 ### 安装kubernetes组件
+
+以下虽然写的是master节点，但其实是三个主机都需要操作以下的步骤
 
 ~~~powershell
 # 由于kubernetes的镜像源在国外，速度比较慢，这里切换成国内的镜像源
@@ -388,6 +413,8 @@ KUBE_PROXY_MODE="ipvs"
 
 ### 准备集群镜像
 
+以下虽然写的是master节点，但其实是三个主机都需要操作以下的步骤
+
 ~~~powershell
 # 在安装kubernetes集群之前，必须要提前准备好集群需要的镜像，所需镜像可以通过下面命令查看
 [root@master ~]# kubeadm config images list
@@ -411,6 +438,16 @@ for imageName in ${images[@]} ; do
 done
 ~~~
 
+![image-20221019220237409](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019220237409.png)
+
+
+
+![image-20221019220452213](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019220452213.png)
+
+![image-20221019220541984](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019220541984.png)
+
+![image-20221019220617033](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019220617033.png)
+
 ### 集群初始化
 
 下面开始对集群进行初始化，并将node节点加入到集群中
@@ -419,30 +456,37 @@ done
 >
 
 ~~~powershell
-# 创建集群
+# 创建集群，出现successfully即可成功
 [root@master ~]# kubeadm init \
 	--kubernetes-version=v1.17.4 \
     --pod-network-cidr=10.244.0.0/16 \
     --service-cidr=10.96.0.0/12 \
     --apiserver-advertise-address=192.168.109.100
 
-# 创建必要文件
+# 创建必要文件，以下三个命令是执行完kubeadm init后所打印提示的
 [root@master ~]# mkdir -p $HOME/.kube
 [root@master ~]# sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 [root@master ~]# sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ~~~
 
+![image-20221019220800469](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019220800469.png)
+
+![image-20221019220840587](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019220840587.png)
+
+![image-20221019221001054](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019221001054.png)
+
+![image-20221019221101218](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019221101218.png)
+
 > 下面的操作只需要在`node`节点上执行即可
->
 
 ~~~powershell
-# 将node节点加入集群
+# 将node节点加入集群，以下命令是执行完kubeadm init后所打印提示的
 [root@master ~]# kubeadm join 192.168.109.100:6443 \ 
 	--token 8507uc.o0knircuri8etnw2 \
 	--discovery-token-ca-cert-hash \
 	sha256:acc37967fb5b0acf39d7598f8a439cc7dc88f439a3f4d0c9cae88e7901b9d3f
 	
-# 查看集群状态 此时的集群状态为NotReady，这是因为还没有配置网络插件
+# 查看集群状态 此时的集群状态为NotReady，这是因为还没有配置网络插件，即各个节点之间是无法通信的
 [root@master ~]# kubectl get nodes
 NAME     STATUS     ROLES    AGE     VERSION
 master   NotReady   master   6m43s   v1.17.4
@@ -454,7 +498,7 @@ node2    NotReady   <none>   19s     v1.17.4
 
 kubernetes支持多种网络插件，比如flannel、calico、canal等等，任选一种使用即可，本次选择flannel
 
-> 下面操作依旧只在`master`节点执行即可，插件使用的是DaemonSet的控制器，它会在每个节点上都运行
+> 下面操作依旧只在`master`节点执行即可，插件使用的是DaemonSet(戴帽set)的控制器，它会在每个节点上都运行
 >
 
 ~~~powershell
@@ -476,7 +520,13 @@ node2    Ready    <none>   8m50s   v1.17.4
 
 至此，kubernetes的集群环境搭建完成
 
+修改后：
+
+![image-20221019221605702](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019221605702.png)
+
 ## 服务部署
+
+下面操作依旧只在`master`节点执行即可
 
 接下来在kubernetes集群中部署一个nginx程序，测试下集群是否在正常工作。
 
@@ -499,7 +549,11 @@ service/nginx        NodePort    10.104.121.45   <none>        80:30073/TCP   17
 # 4 最后在电脑上访问下部署的nginx服务
 ~~~
 
+![image-20221019222339384](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019222339384.png)
+
 <img src="https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20200405142656921.png" alt="image-20200405142656921" style="zoom:80%; border:1px solid" />
+
+
 
 
 

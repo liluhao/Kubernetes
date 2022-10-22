@@ -1205,9 +1205,8 @@ scp  -r  HOME/.kube   node1: HOME/
   + 可能不想让两个Pod之间进行互相的访问
   + 那此时就可以将两个Pod划分到不同的namespace下
     + kubernetes通过将集群内部的资源分配到不同的Namespace中
-    + 可以形成逻辑上的"组"
-      + 以方便不同的组的资源进行隔离使用和管理
-
+    + 可以形成逻辑上的"组"，以方便不同的组的资源进行隔离使用和管理
+  
 + 可以通过kubernetes的授权机制
   + 将不同的namespace交给不同租户进行管理
     + 这样就实现了多租户的资源隔离
@@ -1224,10 +1223,14 @@ kubernetes在集群启动之后，会默认创建几个namespace
 [root@master ~]# kubectl  get namespace
 NAME              STATUS   AGE
 default           Active   45h     #  所有未指定Namespace的对象都会被分配在default命名空间
-kube-node-lease   Active   45h     #  集群节点之间的心跳维护，v1.13开始引入
+kube-node-lease   Active   45h     #  集群节点之间的心跳维护，v1.13开始引入(保证对方是活着的)
 kube-public       Active   45h     #  此命名空间下的资源可以被所有人访问（包括未认证用户）
-kube-system       Active   45h     #  所有由Kubernetes系统创建的资源都处于这个命名空间
+kube-system       Active   45h     #  所有由Kubernetes系统创建的资源都处于这个命名空间(实际上k8s的组件也是以pod的形式运行的)
 ~~~
+
+![image-20221020132935396](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020132935396.png)
+
+![image-20221020133153534](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020133153534.png)
 
 下面来看namespace资源的具体操作：
 
@@ -1242,7 +1245,7 @@ kube-node-lease   Active   45h
 kube-public       Active   45h     
 kube-system       Active   45h     
 
-# 2 查看指定的ns   命令：kubectl get ns ns名称
+# 2 查看指定的ns   命令：kubectl get ns ns名称   AGE：已经工作了多少个小时
 [root@master ~]# kubectl get ns default
 NAME      STATUS   AGE
 default   Active   45h
@@ -1269,13 +1272,12 @@ status:
 Name:         default
 Labels:       <none>
 Annotations:  <none>
-Status:       Active  # Active 命名空间正在使用中  Terminating 正在删除命名空间
-
-# ResourceQuota 针对namespace做的资源限制
-# LimitRange针对namespace中的每个组件做的资源限制
-No resource quota.
-No LimitRange resource.
+Status:       Active  # Active 命名空间正在使用中;Terminating 正在删除命名空间
+No resource quota.  # ResourceQuota 针对namespace做的资源限制（对应到前面的“此时还能结合kubernetes的资源配额机制”）
+No LimitRange resource. # LimitRange针对namespace中的每个组件做的资源限制（对应到前面的“此时还能结合kubernetes的资源配额机制”）
 ~~~
+
+![image-20221020133624428](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020133624428.png)
 
 **创建**
 
@@ -1335,16 +1337,23 @@ kube-system   kube-apiserver-master            1/1     Running   0          2d1h
 kube-system   kube-controller-manager-master   1/1     Running   0          2d1h
 kube-system   kube-flannel-ds-amd64-47r25      1/1     Running   0          2d1h
 kube-system   kube-flannel-ds-amd64-ls5lh      1/1     Running   0          2d1h
+kube-system   kube-flannel-ds-amd64-hx27b      1/1     Running   0          2d1h
 kube-system   kube-proxy-685tk                 1/1     Running   0          2d1h
 kube-system   kube-proxy-87spt                 1/1     Running   0          2d1h
+kube-system   kube-proxy-xvrs5                 1/1     Running   0          2d1h
 kube-system   kube-scheduler-master            1/1     Running   0          2d1h
 ~~~
+
+![image-20221020134324920](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020134324920.png)
 
 **创建并运行**
 
 kubernetes没有提供单独运行Pod的命令，都是通过Pod控制器来实现的
 
 ~~~powershell
+# 先创建一个dev的名称空间
+[root@master ~]# kubectl create ns dev
+
 # 命令格式： kubectl run (pod控制器名称) [参数] 
 # --image  指定Pod的镜像
 # --port   指定端口
@@ -1353,78 +1362,46 @@ kubernetes没有提供单独运行Pod的命令，都是通过Pod控制器来实�
 deployment.apps/nginx created
 ~~~
 
+![image-20221020135123976](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020135123976.png)
+
 **查看pod信息**
 
 ~~~powershell
 # 查看Pod基本信息
 [root@master ~]# kubectl get pods -n dev
 NAME                     READY   STATUS    RESTARTS   AGE
-nginx-5ff7956ff6-fg2db   1/1     Running   0          43s
+nginx-64777cd554-bg2vc   1/1     Running   0          43s
 
 # 查看Pod的详细信息
-[root@master ~]# kubectl describe pod nginx-5ff7956ff6-fg2db -n dev
-Name:         nginx-5ff7956ff6-fg2db
-Namespace:    dev
-Priority:     0
-Node:         node1/192.168.109.101
-Start Time:   Wed, 08 Apr 2020 09:29:24 +0800
-Labels:       pod-template-hash=5ff7956ff6
-              run=nginx
-Annotations:  <none>
-Status:       Running
-IP:           10.244.1.23
-IPs:
-  IP:           10.244.1.23
-Controlled By:  ReplicaSet/nginx-5ff7956ff6
-Containers:
-  nginx:
-    Container ID:   docker://4c62b8c0648d2512380f4ffa5da2c99d16e05634979973449c98e9b829f6253c
-    Image:          nginx:1.17.1
-    Image ID:       docker-pullable://nginx@sha256:485b610fefec7ff6c463ced9623314a04ed67e3945b9c08d7e53a47f6d108dc7
-    Port:           80/TCP
-    Host Port:      0/TCP
-    State:          Running
-      Started:      Wed, 08 Apr 2020 09:30:01 +0800
-    Ready:          True
-    Restart Count:  0
-    Environment:    <none>
-    Mounts:
-      /var/run/secrets/kubernetes.io/serviceaccount from default-token-hwvvw (ro)
-Conditions:
-  Type              Status
-  Initialized       True
-  Ready             True
-  ContainersReady   True
-  PodScheduled      True
-Volumes:
-  default-token-hwvvw:
-    Type:        Secret (a volume populated by a Secret)
-    SecretName:  default-token-hwvvw
-    Optional:    false
-QoS Class:       BestEffort
-Node-Selectors:  <none>
-Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
-                 node.kubernetes.io/unreachable:NoExecute for 300s
-Events:
-  Type    Reason     Age        From               Message
-  ----    ------     ----       ----               -------
-  Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned dev/nginx-5ff7956ff6-fg2db to node1
-  Normal  Pulling    4m11s      kubelet, node1     Pulling image "nginx:1.17.1"
-  Normal  Pulled     3m36s      kubelet, node1     Successfully pulled image "nginx:1.17.1"
-  Normal  Created    3m36s      kubelet, node1     Created container nginx
-  Normal  Started    3m36s      kubelet, node1     Started container nginx
+[root@master ~]# kubectl describe pod nginx-64777cd554-bg2vc -n dev
 ~~~
+
+![image-20221020135832314](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020135832314.png)
+
+![image-20221020135902927](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020135902927.png)
+
+![image-20221020140634509](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020140634509.png)
+
+![image-20221020140703808](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020140703808.png)
+
+Evene字段用于排错，比如下面我们故意开启一个错误的pod
+
+![image-20221020140828239](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020140828239.png)
+
+![image-20221020140856114](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020140856114.png)
+
+![image-20221020140954419](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020140954419.png)
+
+![image-20221020141022751](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020141022751.png)
 
 **访问Pod**
 
 ~~~powershell
 # 获取podIP
 [root@master ~]# kubectl get pods -n dev -o wide
-NAME                     READY   STATUS    RESTARTS   AGE    IP             NODE    ... 
-nginx-5ff7956ff6-fg2db   1/1     Running   0          190s   10.244.1.23   node1   ...
 
 #访问POD
-[root@master ~]# curl http://10.244.1.23:80
+[root@master ~]# curl http://10.244.2.8:80
 <!DOCTYPE html>
 <html>
 <head>
@@ -1436,34 +1413,35 @@ nginx-5ff7956ff6-fg2db   1/1     Running   0          190s   10.244.1.23   node1
 </html>
 ~~~
 
+![image-20221020141354039](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020141354039.png)
+
+![image-20221020141223821](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020141223821.png)
+
 **删除指定Pod**
 
 ~~~powershell
-# 删除指定Pod
-[root@master ~]# kubectl delete pod nginx-5ff7956ff6-fg2db -n dev
-pod "nginx-5ff7956ff6-fg2db" deleted
+# 删除指定Pod nginx-64777cd554-bg2vc
+[root@master ~]# kubectl delete pod nginx-64777cd554-bg2vc -n dev
+pod "nginx-64777cd554-bg2vc" deleted
 
 # 此时，显示删除Pod成功，但是再查询，发现又新产生了一个 
-[root@master ~]# kubectl get pods -n dev
-NAME                     READY   STATUS    RESTARTS   AGE
-nginx-5ff7956ff6-jj4ng   1/1     Running   0          21s
-
 # 这是因为当前Pod是由Pod控制器创建的，控制器会监控Pod状况，一旦发现Pod死亡，会立即重建
 # 此时要想删除Pod，必须删除Pod控制器
+[root@master ~]# kubectl get pods -n dev
 
 # 先来查询一下当前namespace下的Pod控制器
-[root@master ~]# kubectl get deploy -n  dev
-NAME    READY   UP-TO-DATE   AVAILABLE   AGE
-nginx   1/1     1            1           9m7s
+[root@master ~]# kubectl get deployment -n  dev
 
 # 接下来，删除此PodPod控制器
-[root@master ~]# kubectl delete deploy nginx -n dev
+[root@master ~]# kubectl delete deployment nginx -n dev
 deployment.apps "nginx" deleted
 
 # 稍等片刻，再查询Pod，发现Pod被删除了
 [root@master ~]# kubectl get pods -n dev
 No resources found in dev namespace.
 ~~~
+
+![image-20221020141836551](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020141836551.png)
 
 **配置操作**
 
@@ -1537,7 +1515,25 @@ Label的特点：
 
 **命令方式**
 
+```YAML
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  namespace: dev
+spec:
+  containers:
+  - image: nginx:1.17.1
+    name: pod
+    ports:
+    - name: nginx-port
+      containerPort: 80
+      protocol: TCP
+```
+
 ~~~powershell
+[root@master ~]# kubectl  apply  -f  pod-nginx.yaml
+
 # 为pod资源打标签
 [root@master ~]# kubectl label pod nginx-pod version=1.0 -n dev
 pod/nginx-pod labeled
@@ -1558,10 +1554,22 @@ nginx-pod   1/1     Running   0          17m   version=2.0
 [root@master ~]# kubectl get pod -n dev -l version!=2.0 --show-labels
 No resources found in dev namespace.
 
-#删除标签
+#删除标签,version后面是一个减号
 [root@master ~]# kubectl label pod nginx-pod version- -n dev
 pod/nginx-pod labeled
 ~~~
+
+![image-20221020155241080](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155241080.png)
+
+![image-20221020155337716](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155337716.png)
+
+![image-20221020155439462](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155439462.png)
+
+![image-20221020155501925](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155501925.png)
+
+![image-20221020155533564](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155533564.png)
+
+![image-20221020155733110](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155733110.png)
 
 **配置方式**
 
@@ -1586,6 +1594,8 @@ spec:
 
 然后就可以执行对应的更新命令了：kubectl  apply  -f  pod-nginx.yaml
 
+![image-20221020155855010](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155855010.png)
+
 ## Deployment
 
 ​    在kubernetes中，Pod是最小的控制单元，但是kubernetes很少直接控制Pod，一般都是通过Pod控制器来完成的。Pod控制器用于pod的管理，确保pod资源符合预期的状态，当pod的资源出现故障时，会尝试进行重启或重建pod。
@@ -1600,67 +1610,42 @@ spec:
 # 命令格式: kubectl run deployment名称  [参数] 
 # --image  指定pod的镜像
 # --port   指定端口
-# --replicas  指定创建pod数量
+# --replicas  指定创建pod数量，如果不指定的话则replicas默认为1，以下这三个是由一个Deployment创建的
 # --namespace  指定namespace
 [root@master ~]# kubectl run nginx --image=nginx:1.17.1 --port=80 --replicas=3 -n dev
 deployment.apps/nginx created
 
 # 查看创建的Pod
 [root@master ~]# kubectl get pods -n dev
-NAME                     READY   STATUS    RESTARTS   AGE
-nginx-5ff7956ff6-6k8cb   1/1     Running   0          19s
-nginx-5ff7956ff6-jxfjt   1/1     Running   0          19s
-nginx-5ff7956ff6-v6jqw   1/1     Running   0          19s
 
 # 查看deployment的信息
 [root@master ~]# kubectl get deploy -n dev
-NAME    READY   UP-TO-DATE   AVAILABLE   AGE
-nginx   3/3     3            3           2m42s
 
 # UP-TO-DATE：成功升级的副本数量
 # AVAILABLE：可用副本的数量
 [root@master ~]# kubectl get deploy -n dev -o wide
-NAME    READY UP-TO-DATE  AVAILABLE   AGE     CONTAINERS   IMAGES              SELECTOR
-nginx   3/3     3         3           2m51s   nginx        nginx:1.17.1        run=nginx
 
 # 查看deployment的详细信息
 [root@master ~]# kubectl describe deploy nginx -n dev
-Name:                   nginx
-Namespace:              dev
-CreationTimestamp:      Wed, 08 Apr 2020 11:14:14 +0800
-Labels:                 run=nginx
-Annotations:            deployment.kubernetes.io/revision: 1
-Selector:               run=nginx
-Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
-StrategyType:           RollingUpdate
-MinReadySeconds:        0
-RollingUpdateStrategy:  25% max unavailable, 25% max surge
-Pod Template:
-  Labels:  run=nginx
-  Containers:
-   nginx:
-    Image:        nginx:1.17.1
-    Port:         80/TCP
-    Host Port:    0/TCP
-    Environment:  <none>
-    Mounts:       <none>
-  Volumes:        <none>
-Conditions:
-  Type           Status  Reason
-  ----           ------  ------
-  Available      True    MinimumReplicasAvailable
-  Progressing    True    NewReplicaSetAvailable
-OldReplicaSets:  <none>
-NewReplicaSet:   nginx-5ff7956ff6 (3/3 replicas created)
-Events:
-  Type    Reason             Age    From                   Message
-  ----    ------             ----   ----                   -------
-  Normal  ScalingReplicaSet  5m43s  deployment-controller  Scaled up replicaset nginx-5ff7956ff6 to 3
   
-# 删除 
+# 删除，一旦删除Deployment则对应的pod也会被删除的
 [root@master ~]# kubectl delete deploy nginx -n dev
 deployment.apps "nginx" deleted
 ~~~
+
+![image-20221020161409366](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020161409366.png)
+
+![image-20221020161434317](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020161434317.png)
+
+![image-20221020161836100](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020161836100.png)
+
+![image-20221020161907675](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020161907675.png)
+
+![image-20221020161958200](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020161958200.png)
+
+![image-20221020162039323](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020162039323.png)
+
+![image-20221020162337572](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020162337572.png)
 
 **配置操作**
 
@@ -1696,7 +1681,15 @@ spec:
 
 ​    删除：kubectl  delete  -f  deploy-nginx.yaml
 
+![image-20221020162518286](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020162518286.png)
+
+![image-20221020162755929](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020162755929.png)
+
+![image-20221020162815586](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020162815586.png)
+
 ##  Service
+
+
 
 通过上节课的学习，已经能够利用Deployment来创建一组Pod来提供具有高可用性的服务。
 
@@ -1705,38 +1698,36 @@ spec:
 - Pod IP 会随着Pod的重建产生变化
 - Pod IP 仅仅是集群内可见的虚拟IP，外部无法访问
 
+![image-20221020162958494](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020162958494.png)
+
+![image-20221020163702935](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020163702935.png)
+
+![image-20221020163816382](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020163816382.png)
+
 这样对于访问这个服务带来了难度。因此，kubernetes设计了Service来解决这个问题。
 
 Service可以看作是一组同类Pod**对外的访问接口**。借助Service，应用可以方便地实现服务发现和负载均衡。
 
 ![image-20200408194716912](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20200408194716912.png)
 
+![image-20221020164117894](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020164117894.png)
+
 **操作一：创建集群内部可访问的Service**
 
 ~~~powershell
-# 暴露Service
+# 暴露Service，ClusterIP中的C是最大的
 [root@master ~]# kubectl expose deploy nginx --name=svc-nginx1 --type=ClusterIP --port=80 --target-port=80 -n dev
 service/svc-nginx1 exposed
 
 # 查看service
 [root@master ~]# kubectl get svc svc-nginx -n dev -o wide
-NAME         TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE     SELECTOR
-svc-nginx1   ClusterIP   10.109.179.231   <none>        80/TCP    3m51s   run=nginx
 
 # 这里产生了一个CLUSTER-IP，这就是service的IP，在Service的生命周期中，这个地址是不会变动的
 # 可以通过这个IP访问当前service对应的POD
-[root@master ~]# curl 10.109.179.231:80
-<!DOCTYPE html>
-<html>
-<head>
-<title>Welcome to nginx!</title>
-</head>
-<body>
-<h1>Welcome to nginx!</h1>
-.......
-</body>
-</html>
+[root@master ~]# curl 10.110.236.51:80
 ~~~
+
+![image-20221020164539860](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020164539860.png)
 
 **操作二：创建集群外部也可访问的Service**
 
@@ -1746,21 +1737,26 @@ svc-nginx1   ClusterIP   10.109.179.231   <none>        80/TCP    3m51s   run=ng
 [root@master ~]# kubectl expose deploy nginx --name=svc-nginx2 --type=NodePort --port=80 --target-port=80 -n dev
 service/svc-nginx2 exposed
 
-# 此时查看，会发现出现了NodePort类型的Service，而且有一对Port（80:31928/TC）
+# 此时查看，会发现出现了NodePort类型的Service，而且有一对Port
 [root@master ~]# kubectl get svc  svc-nginx-1  -n dev -o wide
-NAME          TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE    SELECTOR
-svc-nginx2    NodePort    10.100.94.0      <none>        80:31928/TCP   9s     run=nginx
 
-# 接下来就可以通过集群外的主机访问 节点IP:31928访问服务了
+# 接下来就可以通过集群外的主机访问 节点IP:307408访问服务了
 # 例如在的电脑主机上通过浏览器访问下面的地址
-http://192.168.109.100:31928/
+http://192.168.109.100:30740/
 ~~~
+
+![image-20221020165445746](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020165445746.png)
+
+![image-20221020165630830](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020165630830.png)
 
 **删除Service**
 
 ~~~powershell
-[root@master ~]# kubectl delete svc svc-nginx-1 -n dev                                   service "svc-nginx-1" deleted
+[root@master ~]# kubectl delete svc svc-nginx-2 -n dev     
+[root@master ~]# kubectl delete svc svc-nginx-1 -n dev  
 ~~~
+
+![image-20221020165810897](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020165810897.png)
 
 **配置方式**
 
@@ -1789,6 +1785,8 @@ spec:
 
 ​    删除：kubectl  delete  -f  svc-nginx.yaml
 
+![image-20221020165946161](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020165946161.png)
+
 > **小结**
 >
 > ​    至此，已经掌握了Namespace、Pod、Deployment、Service资源的基本操作，有了这些操作，就可以在kubernetes集群中实现一个服务的简单部署和访问了，但是如果想要更好的使用kubernetes，就需要深入学习这几种资源的细节和原理。
@@ -1805,23 +1803,25 @@ spec:
 
 <img src="https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20200407121501907.png" alt="image-20200407121501907" style="zoom:80%;" />
 
+![image-20221020172050382](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020172050382.png)
+
 每个Pod中都可以包含一个或者多个容器，这些容器可以分为两类：
 
 - 用户程序所在的容器，数量可多可少
 
-- Pause容器，这是每个Pod都会有的一个**根容器**，它的作用有两个：
+- Pause容器，这是每个Pod都会有的一个**根容器**， 使用kubectl get pods -n dev查看pod的时候是不会显示根容器的，它的作用有两个：
 
   - 可以以它为依据，评估整个Pod的健康状态
 
   - 可以在根容器上设置Ip地址，其它容器都此Ip（Pod IP），以实现Pod内部的网路通信
 
     ~~~md
-    这里是Pod内部的通讯，Pod的之间的通讯采用虚拟二层网络技术来实现，我们当前环境用的是Flannel
+    这里是Pod内部的通讯，如果是Pod的之间的通讯则采用虚拟二层网络技术来实现，我们当前环境用的是Flannel
     ~~~
 
 ### Pod定义
 
-下面是Pod的资源清单：
+下面是Pod的资源清单（以下还不是最全的，只是一部分）：
 
 ~~~yaml
 apiVersion: v1     #必选，版本号，例如v1
@@ -1964,6 +1964,18 @@ FIELDS:
 - volumes      <[]Object>       存储卷，用于定义Pod上面挂在的存储信息 
 - restartPolicy	\<string>       重启策略，表示Pod在遇到故障的时候的处理策略
 
+![image-20221020172651515](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020172651515.png)
+
+![image-20221020172730787](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020172730787.png)
+
+![image-20221020173152271](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020173152271.png)
+
+![image-20221022160958509](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022160958509.png)
+
+![image-20221022161023794](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022161023794.png)
+
+![image-20221022161045788](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022161045788.png)
+
 ## Pod配置
 
 本小节主要来研究`pod.spec.containers`属性，这也是pod配置中最为关键的一项配置。
@@ -1971,7 +1983,7 @@ FIELDS:
 ~~~powershell
 [root@master ~]# kubectl explain pod.spec.containers
 KIND:     Pod
-VERSION:  v1
+VERSION:  v1   
 RESOURCE: containers <[]Object>   # 数组，代表可以有多个容器
 FIELDS:
    name  <string>     # 容器名称
@@ -2018,32 +2030,17 @@ pod/pod-base created
 # READY 1/2 : 表示当前Pod中有2个容器，其中1个准备就绪，1个未就绪
 # RESTARTS  : 重启次数，因为有1个容器故障了，Pod一直在重启试图恢复它
 [root@master pod]# kubectl get pod -n dev
-NAME       READY   STATUS    RESTARTS   AGE
-pod-base   1/2     Running   4          95s
 
 # 可以通过describe查看内部的详情
 # 此时已经运行起来了一个基本的Pod，虽然它暂时有问题
 [root@master pod]# kubectl describe pod pod-base -n dev
 ~~~
 
+![image-20221022162707972](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022162707972.png)
+
+![image-20221022162745978](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022162745978.png)
+
 ### 镜像拉取
-
-创建pod-imagepullpolicy.yaml文件，内容如下：
-
-~~~yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: pod-imagepullpolicy
-  namespace: dev
-spec:
-  containers:
-  - name: nginx
-    image: nginx:1.17.1
-    imagePullPolicy: Always # 用于设置镜像拉取策略
-  - name: busybox
-    image: busybox:1.30
-~~~
 
 imagePullPolicy，用于设置镜像拉取策略，kubernetes支持配置三种拉取策略：
 
@@ -2057,27 +2054,67 @@ imagePullPolicy，用于设置镜像拉取策略，kubernetes支持配置三种�
 >
 > ​	如果镜像tag为：latest（最终版本） ，默认策略是always
 
-~~~powershell
+创建pod-imagepullpolicy.yaml文件，内容如下：
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-imagepullpolicy
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.2
+    imagePullPolicy: Never # 用于设置镜像拉取策略
+  - name: busybox
+    image: busybox:1.30
+```
+
+```yaml
 # 创建Pod
 [root@master pod]# kubectl create -f pod-imagepullpolicy.yaml
 pod/pod-imagepullpolicy created
 
 # 查看Pod详情
-# 此时明显可以看到nginx镜像有一步Pulling image "nginx:1.17.1"的过程
 [root@master pod]# kubectl describe pod pod-imagepullpolicy -n dev
-......
-Events:
-  Type     Reason     Age               From               Message
-  ----     ------     ----              ----               -------
-  Normal   Scheduled  <unknown>         default-scheduler  Successfully assigned dev/pod-imagePullPolicy to node1
-  Normal   Pulling    32s               kubelet, node1     Pulling image "nginx:1.17.1"
-  Normal   Pulled     26s               kubelet, node1     Successfully pulled image "nginx:1.17.1"
-  Normal   Created    26s               kubelet, node1     Created container nginx
-  Normal   Started    25s               kubelet, node1     Started container nginx
-  Normal   Pulled     7s (x3 over 25s)  kubelet, node1     Container image "busybox:1.30" already present on machine
-  Normal   Created    7s (x3 over 25s)  kubelet, node1     Created container busybox
-  Normal   Started    7s (x3 over 25s)  kubelet, node1     Started container busybox
-~~~
+```
+
+![image-20221022163258563](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022163258563.png)
+
+![image-20221022163357161](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022163357161.png)
+
+![image-20221022163408932](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022163408932.png)
+
+![image-20221022163520367](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022163520367.png)
+
+![image-20221022163537445](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022163537445.png)
+
+![image-20221022163656416](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022163656416.png)
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-imagepullpolicy
+  namespace: dev
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.17.1
+    imagePullPolicy: IfNotPresent # 用于设置镜像拉取策略
+  - name: busybox
+    image: busybox:1.30
+```
+
+
+
+![image-20221022163857605](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022163857605.png)
+
+![image-20221022164141901](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022164141901.png)
+
+![](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022164210554.png)
+![image-20221022164255005](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022164255005.png)
 
 ### 启动命令
 
@@ -2143,6 +2180,10 @@ pod-command   2/2     Runing   0          2s
  4 如果command和args都写了，那么Dockerfile的配置被忽略，执行command并追加上args参数
 ```
 
+![image-20221022165058821](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022165058821.png)
+
+![image-20221022164848598](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022164848598.png)
+
 ###  环境变量
 
 创建pod-env.yaml文件，内容如下：
@@ -2182,6 +2223,8 @@ admin
 
 这种方式不是很推荐，推荐将这些配置单独存储在配置文件中，这种方式将在后面介绍。
 
+![image-20221022165241302](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022165241302.png)
+
 ### 端口设置
 
 本小节来介绍容器的端口设置，也就是containers的ports选项。
@@ -2200,6 +2243,8 @@ FIELDS:
    hostIP       <string>  # 要将外部端口绑定到的主机IP(一般省略)
    protocol     <string>  # 端口协议。必须是UDP、TCP或SCTP。默认为“TCP”。
 ~~~
+
+![image-20221022170244095](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022170244095.png)
 
 接下来，编写一个测试案例，创建pod-ports.yaml
 
@@ -2241,6 +2286,10 @@ spec:
 ~~~
 
 访问容器中的程序需要使用的是`podIp:containerPort`
+
+![image-20221022170435865](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022170435865.png)
+
+![image-20221022170503469](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022170503469.png)
 
 ### 资源配额
 
@@ -2288,7 +2337,11 @@ pod/pod-resources created
 [root@master ~]# kubectl get pod pod-resources -n dev
 NAME            READY   STATUS    RESTARTS   AGE  
 pod-resources   1/1     Running   0          39s   
+~~~
 
+![image-20221022170825223](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022170825223.png)
+
+```yaml
 # 接下来，停止Pod
 [root@master ~]# kubectl delete  -f pod-resources.yaml
 pod "pod-resources" deleted
@@ -2309,7 +2362,13 @@ pod-resources   0/2     Pending   0          20s
 [root@master ~]# kubectl describe pod pod-resources -n dev
 ......
 Warning  FailedScheduling  <unknown>  default-scheduler  0/2 nodes are available: 2 Insufficient memory.(内存不足)
-~~~
+```
+
+![image-20221022170949689](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022170949689.png)
+
+![image-20221022171031770](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022171031770.png)
+
+![image-20221022171100954](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022171100954.png)
 
 ## Pod生命周期
 
@@ -2371,7 +2430,7 @@ Warning  FailedScheduling  <unknown>  default-scheduler  0/2 nodes are available
 
 ### 初始化容器
 
-初始化容器是在pod的主容器启动之前要运行的容器，主要是做一些主容器的前置工作，它具有两大特征：
+初始化容器是在pod的主容器(主容器就是我们用户自定义的容器)启动之前要运行的容器，主要是做一些主容器的前置工作，它具有两大特征：
 
 1. 初始化容器必须运行完成直至结束，若某初始化容器运行失败，那么kubernetes需要重启它直到成功完成
 2. 初始化容器必须按照定义的顺序执行，当且仅当前一个成功之后，后面的一个才能运行

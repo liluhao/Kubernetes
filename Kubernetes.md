@@ -2501,6 +2501,12 @@ pod-initcontainer                1/1     Running           0          90s
 [root@master ~]# ifconfig ens33:2 192.168.109.202 netmask 255.255.255.0 up
 ~~~
 
+![image-20221022174426745](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022174426745.png)
+
+![image-20221022174538991](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022174538991.png)
+
+![image-20221022174549612](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022174549612.png)
+
 ### 钩子函数
 
 钩子函数能够感知自身生命周期中的事件，并在相应的时刻到来时运行用户指定的程序代码。
@@ -2588,6 +2594,8 @@ pod-hook-exec  1/1     Running    0          29s    10.244.2.48   node2
 [root@master ~]# curl 10.244.2.48
 postStart...
 ~~~
+
+![image-20221022175155022](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022175155022.png)
 
 ### 容器探测
 
@@ -2685,6 +2693,20 @@ pod-liveness-exec   0/1     CrashLoopBackOff   2          3m19s
 # 当然接下来，可以修改成一个存在的文件，比如/tmp/hello.txt，再试，结果就正常了......
 ~~~
 
+![image-20221022181540670](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022181540670.png)
+
+![image-20221022181602300](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022181602300.png)
+
+![image-20221022181628332](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022181628332.png)
+
+![image-20221022181708082](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022181708082.png)
+
+![image-20221022181743214](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022181743214.png)
+
+![image-20221022181808030](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022181808030.png)
+
+![image-20221022181834633](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022181834633.png)
+
 **方式二：TCPSocket**
 
 创建pod-liveness-tcpsocket.yaml
@@ -2731,6 +2753,18 @@ pod-liveness-tcpsocket   0/1     CrashLoopBackOff   2          3m19s
 
 # 当然接下来，可以修改成一个可以访问的端口，比如80，再试，结果就正常了......
 ~~~
+
+![image-20221022182358225](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022182358225.png)
+
+![image-20221022182430922](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022182430922.png)
+
+![image-20221022182629873](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022182629873.png)
+
+![image-20221022182549310](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022182549310.png)
+
+![image-20221022182739991](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022182739991.png)
+
+![image-20221022182721631](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221022182721631.png)
 
 **方式三：HTTPGet**
 

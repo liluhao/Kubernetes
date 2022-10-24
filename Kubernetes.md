@@ -2920,7 +2920,7 @@ pod-restartpolicy      0/1     Running   0          5min42s
 
 ​    定向调度，指的是利用在pod上声明nodeName或者nodeSelector，以此将Pod调度到期望的node节点上。注意，这里的调度是强制的，这就意味着即使要调度的目标Node不存在，也会向上面进行调度，只不过pod运行失败而已。
 
-**NodeName**
+#### **NodeName**
 
 ​    NodeName用于强制约束将Pod调度到指定的Name的Node节点上。这种方式，其实是直接跳过Scheduler的调度逻辑，直接将Pod调度到指定名称的节点。
 
@@ -2962,7 +2962,7 @@ NAME           READY   STATUS    RESTARTS   AGE   IP       NODE    ......
 pod-nodename   0/1     Pending   0          6s    <none>   node3   ......           
 ~~~
 
-**NodeSelector**
+#### **NodeSelector**
 
 ​    NodeSelector用于将pod调度到添加了指定标签的node节点上。它是通过kubernetes的label-selector机制实现的，也就是说，在pod创建之前，会由scheduler使用MatchNodeSelector调度策略进行label匹配，找出目标node，然后将pod调度到目标节点，该匹配规则是强制约束。
 
@@ -3045,7 +3045,7 @@ Affinity主要分为三类：
 >
 > **反亲和性**：当应用的采用多副本部署时，有必要采用反亲和性让各个应用实例打散分布在各个node上，这样可以提高服务的高可用性。
 
-**NodeAffinity**
+#### **NodeAffinity**
 
 首先来看一下`NodeAffinity`的可配置项：
 
@@ -3081,6 +3081,8 @@ pod.spec.affinity.nodeAffinity
     operator: Gt
     values: "xxx"
 ~~~
+
+##### 硬限制
 
 接下来首先演示一下`requiredDuringSchedulingIgnoredDuringExecution` ,
 
@@ -3140,7 +3142,9 @@ NAME                        READY   STATUS    RESTARTS   AGE   IP            NOD
 pod-nodeaffinity-required   1/1     Running   0          11s   10.244.1.89   node1 ......
 ~~~
 
-接下来再演示一下`requiredDuringSchedulingIgnoredDuringExecution` ,
+##### 软限制
+
+接下来再演示一下`preferredDuringSchedulingIgnoredDuringExecution` ,
 
 创建pod-nodeaffinity-preferred.yaml
 
@@ -3184,7 +3188,7 @@ NodeAffinity规则设置的注意事项：
     4 如果一个pod所在的Node在Pod运行期间其标签发生了改变，不再符合该Pod的节点亲和性需求，则系统将忽略此变化
 ~~~
 
-**PodAffinity**
+#### **PodAffinity**
 
 PodAffinity主要实现以运行的Pod为参照，实现让新创建的Pod跟参照pod在一个区域的功能。
 
@@ -3220,6 +3224,8 @@ topologyKey用于指定调度时作用域,例如:
 	如果指定为beta.kubernetes.io/os,则以Node节点的操作系统类型来区分
 ~~~
 
+##### 硬限制
+
 接下来，演示下`requiredDuringSchedulingIgnoredDuringExecution`,
 
 1）首先创建一个参照Pod，pod-podaffinity-target.yaml：
@@ -3244,7 +3250,7 @@ spec:
 [root@master ~]# kubectl create -f pod-podaffinity-target.yaml
 pod/pod-podaffinity-target created
 
-# 查看pod状况
+# 查看pod状况 
 [root@master ~]# kubectl get pods  pod-podaffinity-target -n dev
 NAME                     READY   STATUS    RESTARTS   AGE
 pod-podaffinity-target   1/1     Running   0          4s
@@ -3309,9 +3315,11 @@ NAME                       READY   STATUS    RESTARTS   AGE   LABELS
 pod-podaffinity-required   1/1     Running   0          6s    <none>
 ~~~
 
+##### 软限制
+
 关于`PodAffinity`的 `preferredDuringSchedulingIgnoredDuringExecution`，这里不再演示。
 
-**PodAntiAffinity**
+#### **PodAntiAffinity**
 
 PodAntiAffinity主要实现以运行的Pod为参照，让新创建的Pod跟参照pod不在一个区域中的功能。
 
@@ -3535,6 +3543,8 @@ Pod是kubernetes的最小管理单元，在kubernetes中，按照pod的创建方
 
 ![](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20200612005334159.png)
 
+### 资源清单文件
+
 ReplicaSet的资源清单文件：
 
 ~~~yaml
@@ -3574,7 +3584,7 @@ spec: # 详情描述
 
 - template：模板，就是当前控制器创建pod所使用的模板板，里面其实就是前一章学过的pod的定义
 
-**创建ReplicaSet**
+### **创建ReplicaSet**
 
 创建pc-replicaset.yaml文件，内容如下：
 
@@ -3621,7 +3631,7 @@ pc-replicaset-fmb8f   1/1     Running   0          54s
 pc-replicaset-snrk2   1/1     Running   0          54s
 ~~~
 
-**扩缩容**
+### **扩缩容**
 
 ~~~powershell
 # 编辑rs的副本数量，修改spec:replicas: 6即可
@@ -3660,7 +3670,7 @@ pc-replicaset-fmb8f   1/1     Running   0          119m
 pc-replicaset-snrk2   1/1     Running   0          119m
 ~~~
 
-**镜像升级**
+### **镜像升级**
 
 ~~~powershell
 # 编辑rs的容器镜像 - image: nginx:1.17.2
@@ -3683,7 +3693,7 @@ NAME                 DESIRED  CURRENT   READY   AGE    CONTAINERS   IMAGES      
 pc-replicaset        2        2         2       145m   nginx        nginx:1.17.1 ... 
 ~~~
 
-**删除ReplicaSet**
+### **删除ReplicaSet**
 
 ~~~powershell
 # 使用kubectl delete命令会删除此RS以及它管理的Pod
@@ -3708,7 +3718,7 @@ replicaset.apps "pc-replicaset" deleted
 
 ## Deployment(Deploy)
 
-​    为了更好的解决服务编排的问题，kubernetes在V1.2版本开始，引入了Deployment控制器。值得一提的是，这种控制器并不直接管理pod，而是通过管理ReplicaSet来简介管理Pod，即：Deployment管理ReplicaSet，ReplicaSet管理Pod。所以Deployment比ReplicaSet功能更加强大。
+​    为了更好的解决服务编排的问题，kubernetes在V1.2版本开始，引入了Deployment控制器。值得一提的是，这种控制器并不直接管理pod，而是通过管理ReplicaSet来间接管理Pod，即：Deployment管理ReplicaSet，ReplicaSet管理Pod。所以Deployment比ReplicaSet功能更加强大。
 
 ![](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20200612005524778.png)
 
@@ -3717,6 +3727,8 @@ Deployment主要功能有下面几个：
 - 支持ReplicaSet的所有功能
 - 支持发布的停止、继续
 - 支持滚动升级和回滚版本
+
+### 资源清单文件
 
 Deployment的资源清单文件：
 
@@ -3755,7 +3767,7 @@ spec: # 详情描述
         - containerPort: 80
 ~~~
 
-**创建deployment**
+### **创建deployment**
 
 创建pc-deployment.yaml，内容如下：
 
@@ -3806,7 +3818,7 @@ pc-deployment-6696798b78-smpvp   1/1     Running   0          107s
 pc-deployment-6696798b78-wvjd8   1/1     Running   0          107s
 ~~~
 
-**扩缩容**
+### **扩缩容**
 
 ~~~powershell
 # 变更副本数量为5个
@@ -3840,12 +3852,12 @@ pc-deployment-6696798b78-smpvp   1/1     Running   0          5m23s
 pc-deployment-6696798b78-wvjd8   1/1     Running   0          5m23s
 ~~~
 
-**镜像更新**
+### **镜像更新**
 
 deployment支持两种更新策略:`重建更新`和`滚动更新`,可以通过`strategy`指定策略类型,支持两个属性:
 
 ~~~markdown
-strategy：指定新的Pod替换旧的Pod的策略， 支持两个属性：
+strategy：指定新的Pod替换旧的Pod的策略，支持两个属性：
   type：指定策略类型，支持两种策略
     Recreate：在创建出新的Pod之前会先杀掉所有已存在的Pod
     RollingUpdate：滚动更新，就是杀死一部分，就启动一部分，在更新过程中，存在两个版本Pod
@@ -3854,7 +3866,7 @@ strategy：指定新的Pod替换旧的Pod的策略， 支持两个属性：
     maxSurge： 用来指定在升级过程中可以超过期望的Pod的最大数量，默认为25%。
 ~~~
 
-重建更新
+#### 重建更新
 
 1) 编辑pc-deployment.yaml,在spec节点下添加更新策略
 
@@ -3895,7 +3907,7 @@ pc-deployment-675d469f8b-67nz2   1/1     Running             0          1s
 pc-deployment-675d469f8b-hbl4v   1/1     Running             0          2s
 ~~~
 
-滚动更新
+#### 滚动更新
 
 1) 编辑pc-deployment.yaml,在spec节点下添加更新策略
 
@@ -3963,7 +3975,7 @@ pc-deployment-6696798b11   0         0         0       5m37s
 pc-deployment-c848d76789   4         4         4       72s
 ~~~
 
-**版本回退**
+### **版本回退**
 
 deployment支持版本升级过程中的暂停、继续功能以及版本回退等诸多功能，下面具体来看.
 
@@ -4011,7 +4023,7 @@ pc-deployment-966bf7f44    0         0         0       37m
 pc-deployment-c848d767     0         0         0       71m
 ~~~
 
-**金丝雀发布**
+### **金丝雀发布**
 
 ​    Deployment控制器支持控制更新过程中的控制，如“暂停(pause)”或“继续(resume)”更新操作。
 
@@ -4061,7 +4073,7 @@ pc-deployment-6c9f56fcfb-j2gtj   1/1     Running   0          5m27s
 pc-deployment-6c9f56fcfb-rf84v   1/1     Running   0          37s
 ```
 
-**删除Deployment**
+### **删除Deployment**
 
 ~~~powershell
 # 删除deployment，其下的rs和pod也将被删除

@@ -768,7 +768,7 @@ kubectl get pod pod_name -o yaml
 
 ![image-20221109165814527](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109165814527.png)
 
-![image-20221109165542391](C:\Users\24153\AppData\Roaming\Typora\typora-user-images\image-20221109165542391.png)
+![image-20221109165542391](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109165542391.png)
 
 ![image-20221109165359412](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109165359412.png)
 
@@ -776,7 +776,7 @@ kubectl get pod pod_name -o yaml
 
 ![image-20221109164315868](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109164315868.png)
 
-![image-20221109172924930](C:\Users\24153\AppData\Roaming\Typora\typora-user-images\image-20221109172924930.png)
+![image-20221109172924930](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109172924930.png)
 
 ![image-20221109172703617](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109172703617.png)
 

@@ -1,4 +1,4 @@
-# 第一章 kubernetes介绍
+#  第一章 kubernetes介绍
 
 本章节主要介绍应用程序在服务器上部署方式演变以及kubernetes的概念、组件和工作原理。
 
@@ -10,7 +10,7 @@
 
   > 优点：简单，不需要其它技术的参与
   >
-  > 缺点：不能为应用程序定义资源使用边界，很难合理地分配计算资源，而且程序之间容易产生影响
+  > 缺点：不能为应		用程序定义资源使用边界，很难合理地分配计算资源，而且程序之间容易产生影响
   
 - **虚拟化部署**：可以在一台物理机上运行多个虚拟机，每个虚拟机都是独立的一个环境
 
@@ -534,26 +534,22 @@ node2    Ready    <none>   8m50s   v1.17.4
 # 部署nginx
 [root@master ~]# kubectl create deployment nginx --image=nginx:1.14-alpine
 
-# 暴露端口
+# 暴露端口，NodePort是指可以让集群之外的浏览器进行访问
 [root@master ~]# kubectl expose deployment nginx --port=80 --type=NodePort
 
 # 查看节点状态
 [root@master ~]# kubectl get pods 
 NAME                         READY   STATUS    RESTARTS   AGE
-nginx-6867cdf567-8vhcw       1/1     Running   0          79s
 
 # 查看服务状态
 [root@master ~]# kubectl get service
-NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
-kubernetes           ClusterIP   10.96.0.1       <none>        443/TCP        32m
-nginx                NodePort    10.108.39.131   <none>        80:30518/TCP   56m
 
-# 4 最后在电脑上访问下部署的nginx服务
+# 4 最后在电脑上访问下部署的nginx服务  
 ~~~
 
-![image-20221019222339384](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221019222339384.png)
+![image-20221025135037368](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221025135037368.png)
 
-<img src="https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20200405142656921.png" alt="image-20200405142656921" style="zoom:80%; border:1px solid" />
+![image-20221025135255243](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221025135255243.png)
 
 
 
@@ -726,7 +722,7 @@ address: [顺义,昌平]
 
 #### **kubectl命令**
 
-+ kubect(酷ber c t l)l是kubernetes集群的命令行工具
++ kubect(酷ber c t l)是kubernetes集群的命令行工具
   + 通过它能够对集群本身进行管理
   + 并能够在集群上进行容器化应用的安装部署
 + kubectl命令的语法如下：
@@ -762,132 +758,34 @@ kubectl get pod pod_name -o yaml
 
 ![image-20221020114725777](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020114725777.png)
 
-![image-20221020114953823](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020114953823.png)
+![image-20221109172138182](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109172138182.png)
 
-![image-20221020115057126](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020115057126.png)
+![image-20221109171912050](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109171912050.png)
 
-#### **资源类型**
+![image-20221109171036150](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109171036150.png)
 
-+ kubernetes中
-  + 所有的内容都抽象为资源
-  + 可以通过下面的命令进行查看:
+![image-20221109165748528](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109165748528.png)
 
-~~~powershell
-kubectl api-resources
-~~~
+![image-20221109165814527](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109165814527.png)
 
-![image-20221020115924119](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020115924119.png)
+![image-20221109165542391](C:\Users\24153\AppData\Roaming\Typora\typora-user-images\image-20221109165542391.png)
 
-![image-20221020120026293](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020120026293.png)
+![image-20221109165359412](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109165359412.png)
 
-![image-20221020120104377](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020120104377.png)
+![image-20221109164505537](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109164505537.png)
 
-经常使用的资源有下面这些：
+![image-20221109164315868](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109164315868.png)
 
-<table>
-	<tr>
-	    <th>资源分类</th>
-	    <th>资源名称</th>
-		<th>缩写</th>
-		<th>资源作用</th>
-	</tr>
-	<tr>
-	    <td rowspan="2">集群级别资源</td>
-        <td>nodes</td>
-	    <td>no</td>
-		<td>集群组成部分</td>
-	</tr>
-	<tr>
-		<td>namespaces</td>
-	    <td>ns</td>
-		<td>隔离Pod</td>
-	</tr>
-	<tr>
-		<td>pod资源</td>
-	    <td>pods</td>
-	    <td>po</td>
-		<td>装载容器</td>
-	</tr>
-	<tr>
-		<td rowspan="8">pod资源控制器</td>
-	    <td>replicationcontrollers</td>
-	    <td>rc</td>
-		<td>控制pod资源</td>
-	</tr>
-	<tr>
-	    <td>replicasets</td>
-	    <td>rs</td>
-		<td>控制pod资源</td>
-	</tr>
-	<tr>
-	    <td>deployments</td>
-	    <td>deploy</td>
-		<td>控制pod资源</td>
-	</tr>
-	<tr>
-	    <td>daemonsets</td>
-	    <td>ds</td>
-		<td>控制pod资源</td>
-	</tr>
-	<tr>
-	    <td>jobs</td>
-	    <td></td>
-		<td>控制pod资源</td>
-	</tr>	
-	<tr>
-	    <td>cronjobs</td>
-	    <td>cj</td>
-		<td>控制pod资源</td>
-	</tr>	
-	<tr>
-	    <td>horizontalpodautoscalers</td>
-	    <td>hpa</td>
-		<td>控制pod资源</td>
-	</tr>	
-	<tr>
-	    <td>statefulsets</td>
-	    <td>sts</td>
-		<td>控制pod资源</td>
-	</tr>
-	<tr>
-		<td rowspan="2">服务发现资源</td>
-	    <td>services</td>
-	    <td>svc</td>
-		<td>统一pod对外接口</td>
-	</tr>
-    <tr>
-	    <td>ingress</td>
-	    <td>ing</td>
-		<td>统一pod对外接口</td>
-	</tr>
-	<tr>
-		<td rowspan="3">存储资源</td>
-	    <td>volumeattachments</td>
-	    <td></td>
-		<td>存储</td>
-	</tr>
-	<tr>
-	    <td>persistentvolumes</td>
-	    <td>pv</td>
-		<td>存储</td>
-	</tr>
-	<tr>
-	    <td>persistentvolumeclaims</td>
-	    <td>pvc</td>
-		<td>存储</td>
-	</tr>
-	<tr>
-		<td rowspan="2">配置资源</td>
-	    <td>configmaps</td>
-	    <td>cm</td>
-		<td>配置</td>
-	</tr>
-	<tr>
-	    <td>secrets</td>
-	    <td></td>
-		<td>配置</td>
-	</tr>
-</table>
+![image-20221109172924930](C:\Users\24153\AppData\Roaming\Typora\typora-user-images\image-20221109172924930.png)
+
+![image-20221109172703617](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109172703617.png)
+
+![image-20221109172622092](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109172622092.png)
+
+![image-20221109172833949](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109172833949.png)
+
+![](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109172359062.png) 
+
 #### **资源操作命令**
 
 kubernetes允许对资源进行多种操作，可以通过--help查看详细的操作命令
@@ -1010,12 +908,151 @@ kubectl --help
 		<td>显示当前Server和Client的版本</td>
 	</tr>
 </table>
-![image-20221020115418813](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020115418813.png)
+
+```powershell
+kubectl describe pod pod_name 
+
+kubectl version
+
+kubectl cluster-info
+```
+
+![image-20221109174101344](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109174101344.png)
+
+![image-20221109173955506](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109173955506.png)
+
+![image-20221109173859609](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109173859609.png)
 
 ![image-20221020115659524](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020115659524.png)
 
 ![image-20221020115732031](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020115732031.png)
 
+#### **资源类型**
+
++ kubernetes中
+  + 所有的内容都抽象为资源
+  + 可以通过下面的命令进行查看:
+
+~~~powershell
+kubectl api-resources
+~~~
+
+![image-20221109175057443](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109175057443.png)
+
+![image-20221109174840913](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109174840913.png)
+
+```yaml
+kubectl get nodes
+```
+
+![](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020120104377.png)
+
+经常使用的资源有下面这些：
+
+<table>
+	<tr>
+	    <th>资源分类</th>
+	    <th>资源名称</th>
+		<th>缩写</th>
+		<th>资源作用</th>
+	</tr>
+	<tr>
+	    <td rowspan="2">集群级别资源</td>
+        <td>nodes</td>
+	    <td>no</td>
+		<td>集群组成部分</td>
+	</tr>
+	<tr>
+		<td>namespaces</td>
+	    <td>ns</td>
+		<td>隔离Pod</td>
+	</tr>
+	<tr>
+		<td>pod资源</td>
+	    <td>pods</td>
+	    <td>po</td>
+		<td>装载容器</td>
+	</tr>
+	<tr>
+		<td rowspan="8">pod资源控制器</td>
+	    <td>replicationcontrollers</td>
+	    <td>rc</td>
+		<td>控制pod资源</td>
+	</tr>
+	<tr>
+	    <td>replicasets</td>
+	    <td>rs</td>
+		<td>控制pod资源</td>
+	</tr>
+	<tr>
+	    <td>deployments</td>
+	    <td>deploy</td>
+		<td>控制pod资源</td>
+	</tr>
+	<tr>
+	    <td>daemonsets</td>
+	    <td>ds</td>
+		<td>控制pod资源</td>
+	</tr>
+	<tr>
+	    <td>jobs</td>
+	    <td></td>
+		<td>控制pod资源</td>
+	</tr>	
+	<tr>
+	    <td>cronjobs</td>
+	    <td>cj</td>
+		<td>控制pod资源</td>
+	</tr>	
+	<tr>
+	    <td>horizontalpodautoscalers</td>
+	    <td>hpa</td>
+		<td>控制pod资源</td>
+	</tr>	
+	<tr>
+	    <td>statefulsets</td>
+	    <td>sts</td>
+		<td>控制pod资源</td>
+	</tr>
+	<tr>
+		<td rowspan="2">服务发现资源</td>
+	    <td>services</td>
+	    <td>svc</td>
+		<td>统一pod对外接口</td>
+	</tr>
+    <tr>
+	    <td>ingress</td>
+	    <td>ing</td>
+		<td>统一pod对外接口</td>
+	</tr>
+	<tr>
+		<td rowspan="3">存储资源</td>
+	    <td>volumeattachments</td>
+	    <td></td>
+		<td>存储</td>
+	</tr>
+	<tr>
+	    <td>persistentvolumes</td>
+	    <td>pv</td>
+		<td>存储</td>
+	</tr>
+	<tr>
+	    <td>persistentvolumeclaims</td>
+	    <td>pvc</td>
+		<td>存储</td>
+	</tr>
+	<tr>
+		<td rowspan="2">配置资源</td>
+	    <td>configmaps</td>
+	    <td>cm</td>
+		<td>配置</td>
+	</tr>
+	<tr>
+	    <td>secrets</td>
+	    <td></td>
+		<td>配置</td>
+	</tr>
+</table>
 #### 案例
 
 下面以一个namespace / pod的创建和删除简单演示下命令的使用：
@@ -1023,34 +1060,26 @@ kubectl --help
 ~~~powershell
 # 创建一个namespace(即名称空间,比如为先创建一个名字叫dev的小房子)
 [root@master ~]# kubectl create namespace dev
-namespace/dev created
 
 # 获取namespace(除了dev外，其他都是集群自带的)
 [root@master ~]# kubectl get ns
-NAME              STATUS   AGE
-default           Active   21h
-dev               Active   21s
-kube-node-lease   Active   21h
-kube-public       Active   21h
-kube-system       Active   21h
 
 # 在此namespace下创建并运行一个nginx的Pod(如果不指定dev,则会创建到default下面)
 [root@master ~]# kubectl run pod --image=nginx -n dev
-kubectl run --generator=deployment/apps.v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
-deployment.apps/pod created
+
 
 # 查看默认的default下面的pod
 [root@master ~]# kubectl get pods 
 
 # 查看dev下的pod
 [root@master ~]# kubectl get pods -n dev
-NAME                   READY   STATUS    RESTARTS   AGE
-pod-cbb995bbf-t6hww    1/1     Running   0          38s
+
+[root@master ~]# kubectl describe pods pod-cbb995bbf-t6hww -n dev
 
 # 删除指定的pod,比如指定dev,否则指定的是default下面的pod,又由于default下面没有"pod-cbb995bbf-t6hww"这个,则会删除失败 
-# 意外的发现,执行完以下命令再次通过"kubectl get pods -n dev"查询后发现又出现了个新pod,原因之后会将
+# 意外的发现,执行完以下命令再次通过"kubectl get pods -n dev"查询后发现又出现了个新pod,原因是run命令会用到pod控制器
 [root@master ~]# kubectl delete pod pod-cbb995bbf-t6hww -n dev
-pod "pod-cbb995bbf-t6hww" deleted
+[root@master ~]# kubectl get pods -n dev
 
 # 删除指定的namespace,所有这个空间下的东西都被删了
 [root@master ~]# kubectl delete ns dev
@@ -1061,9 +1090,9 @@ namespace "dev" deleted
 
 ![image-20221020121301347](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020121301347.png)
 
-![image-20221020121335333](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020121335333.png)
+![image-20221109175826171](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109175826171.png)
 
-![image-20221020123635049](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020123635049.png)
+![image-20221109180227977](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109180227977.png)
 
 ![image-20221020124153407](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020124153407.png)
 
@@ -1096,13 +1125,9 @@ spec:
 
 ~~~powershell
 [root@master ~]# kubectl create -f nginxpod.yaml
-namespace/dev created
-pod/nginxpod created
 ~~~
 
 此时发现创建了两个资源对象，分别是namespace和pod
-
-![image-20221020130943247](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020130943247.png)
 
 3）执行get命令，查看资源：
 
@@ -1121,9 +1146,9 @@ pod/nginxpod    1/1     Running   0          17s
 
 ~~~powershell
 [root@master ~]# kubectl delete -f nginxpod.yaml
-namespace "dev" deleted
-pod "nginxpod" deleted
 ~~~
+
+![image-20221109223700403](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109223700403.png)
 
 此时发现两个资源对象被删除了
 
@@ -1226,29 +1251,22 @@ default           Active   45h     #  所有未指定Namespace的对象都会被
 kube-node-lease   Active   45h     #  集群节点之间的心跳维护，v1.13开始引入(保证对方是活着的)
 kube-public       Active   45h     #  此命名空间下的资源可以被所有人访问（包括未认证用户）
 kube-system       Active   45h     #  所有由Kubernetes系统创建的资源都处于这个命名空间(实际上k8s的组件也是以pod的形式运行的)
+
+[root@master ~]# kubectl  get pods -n   kube-system
 ~~~
 
-![image-20221020132935396](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020132935396.png)
-
-![image-20221020133153534](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020133153534.png)
+![image-20221109224948859](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109224948859.png)
 
 下面来看namespace资源的具体操作：
 
 **查看**
 
 ~~~powershell
-# 1 查看所有的ns  命令：kubectl get ns
+# 1 查看所有的ns  命令：kubectl get ns，active代表是激活状态， AGE：已经工作了多少个小时
 [root@master ~]# kubectl get ns
-NAME              STATUS   AGE
-default           Active   45h
-kube-node-lease   Active   45h
-kube-public       Active   45h     
-kube-system       Active   45h     
-
+    
 # 2 查看指定的ns   命令：kubectl get ns ns名称   AGE：已经工作了多少个小时
 [root@master ~]# kubectl get ns default
-NAME      STATUS   AGE
-default   Active   45h
 
 # 3 指定输出格式  命令：kubectl get ns ns名称  -o 格式参数
 # kubernetes支持的格式有很多，比较常见的是wide、json、yaml
@@ -1284,7 +1302,8 @@ No LimitRange resource. # LimitRange针对namespace中的每个组件做的资�
 ~~~powershell
 # 创建namespace
 [root@master ~]# kubectl create ns dev
-namespace/dev created
+
+[root@master ~]# kubectl get ns dev
 ~~~
 
 **删除**
@@ -1292,7 +1311,8 @@ namespace/dev created
 ~~~powershell
 # 删除namespace
 [root@master ~]# kubectl delete ns dev
-namespace "dev" deleted
+
+[root@master ~]# kubectl get ns dev
 ~~~
 
 **配置方式**
@@ -1312,6 +1332,8 @@ metadata:
 
 ​    删除：kubectl  delete  -f  ns-dev.yaml
 
+![image-20221109230017625](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109230017625.png)
+
 ## Pod
 
 + Pod是kubernetes集群进行管理的最小单元
@@ -1329,19 +1351,6 @@ metadata:
 
 ~~~powershell
 [root@master ~]# kubectl get pod -n kube-system
-NAMESPACE     NAME                             READY   STATUS    RESTARTS   AGE
-kube-system   coredns-6955765f44-68g6v         1/1     Running   0          2d1h
-kube-system   coredns-6955765f44-cs5r8         1/1     Running   0          2d1h
-kube-system   etcd-master                      1/1     Running   0          2d1h
-kube-system   kube-apiserver-master            1/1     Running   0          2d1h
-kube-system   kube-controller-manager-master   1/1     Running   0          2d1h
-kube-system   kube-flannel-ds-amd64-47r25      1/1     Running   0          2d1h
-kube-system   kube-flannel-ds-amd64-ls5lh      1/1     Running   0          2d1h
-kube-system   kube-flannel-ds-amd64-hx27b      1/1     Running   0          2d1h
-kube-system   kube-proxy-685tk                 1/1     Running   0          2d1h
-kube-system   kube-proxy-87spt                 1/1     Running   0          2d1h
-kube-system   kube-proxy-xvrs5                 1/1     Running   0          2d1h
-kube-system   kube-scheduler-master            1/1     Running   0          2d1h
 ~~~
 
 ![image-20221020134324920](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020134324920.png)
@@ -1359,7 +1368,6 @@ kubernetes没有提供单独运行Pod的命令，都是通过Pod控制器来实�
 # --port   指定端口
 # --namespace  指定namespace
 [root@master ~]# kubectl run nginx --image=nginx:1.17.1 --port=80 --namespace dev 
-deployment.apps/nginx created
 ~~~
 
 ![image-20221020135123976](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020135123976.png)
@@ -1369,22 +1377,22 @@ deployment.apps/nginx created
 ~~~powershell
 # 查看Pod基本信息
 [root@master ~]# kubectl get pods -n dev
-NAME                     READY   STATUS    RESTARTS   AGE
-nginx-64777cd554-bg2vc   1/1     Running   0          43s
 
-# 查看Pod的详细信息
+[root@master ~]# kubectl get pods -n dev -o wide
+
+# 查看Pod的详细信息,ready代表着当前有几个容器在pod里面，需要注意的是pause根容器是不会计算在ready里面的
 [root@master ~]# kubectl describe pod nginx-64777cd554-bg2vc -n dev
 ~~~
 
 ![image-20221020135832314](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020135832314.png)
 
-![image-20221020135902927](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020135902927.png)
+![image-20221109232209485](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109232209485.png)
 
-![image-20221020140634509](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020140634509.png)
+![image-20221109232125726](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109232125726.png)
 
-![image-20221020140703808](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020140703808.png)
+![image-20221109231449615](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109231449615.png)
 
-Evene字段用于排错，比如下面我们故意开启一个错误的pod
+Evenes字段用于排错，比如下面我们故意开启一个错误的pod
 
 ![image-20221020140828239](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020140828239.png)
 
@@ -1420,9 +1428,10 @@ Evene字段用于排错，比如下面我们故意开启一个错误的pod
 **删除指定Pod**
 
 ~~~powershell
+[root@master ~]# kubectl get pods -n dev
+
 # 删除指定Pod nginx-64777cd554-bg2vc
 [root@master ~]# kubectl delete pod nginx-64777cd554-bg2vc -n dev
-pod "nginx-64777cd554-bg2vc" deleted
 
 # 此时，显示删除Pod成功，但是再查询，发现又新产生了一个 
 # 这是因为当前Pod是由Pod控制器创建的，控制器会监控Pod状况，一旦发现Pod死亡，会立即重建
@@ -1468,6 +1477,8 @@ spec:
 ​    创建：kubectl  create  -f  pod-nginx.yaml
 
 ​    删除：kubectl  delete  -f  pod-nginx.yaml
+
+![image-20221109233449411](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221109233449411.png)
 
 ## Label
 
@@ -1532,44 +1543,77 @@ spec:
 ```
 
 ~~~powershell
-[root@master ~]# kubectl  apply  -f  pod-nginx.yaml
+[root@master ~]# kubectl  create  -f  pod-nginx.yaml
 
-# 为pod资源打标签
-[root@master ~]# kubectl label pod nginx-pod version=1.0 -n dev
-pod/nginx-pod labeled
-
-# 为pod资源更新标签
-[root@master ~]# kubectl label pod nginx-pod version=2.0 -n dev --overwrite
-pod/nginx-pod labeled
+[root@master ~]# kubectl  get  pod -n  dev
 
 # 查看标签
-[root@master ~]# kubectl get pod nginx-pod  -n dev --show-labels
-NAME        READY   STATUS    RESTARTS   AGE   LABELS
-nginx-pod   1/1     Running   0          10m   version=2.0
+[root@master ~]# kubectl get pod  -n dev --show-labels
 
-# 筛选标签
-[root@master ~]# kubectl get pod -n dev -l version=2.0  --show-labels
-NAME        READY   STATUS    RESTARTS   AGE   LABELS
-nginx-pod   1/1     Running   0          17m   version=2.0
-[root@master ~]# kubectl get pod -n dev -l version!=2.0 --show-labels
-No resources found in dev namespace.
+# 为pod资源打标签
+[root@master ~]# kubectl label pod nginx -n dev version=1.0 
 
-#删除标签,version后面是一个减号
-[root@master ~]# kubectl label pod nginx-pod version- -n dev
-pod/nginx-pod labeled
+# 查看标签
+[root@master ~]# kubectl get pod  -n dev --show-labels
+
+# 新增标签
+[root@master ~]# kubectl label pod  ngnix -n dev tier=back
+
+# 查看标签
+[root@master ~]# kubectl get pod  -n dev --show-labels
+
+# 为pod资源更新标签，必须得增加--overwrite，否则报错
+[root@master ~]# kubectl label pod nginx -n dev version=2.0  --overwrite
+
+# 查看标签
+[root@master ~]# kubectl get pod  -n dev --show-labels
 ~~~
 
 ![image-20221020155241080](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155241080.png)
 
 ![image-20221020155337716](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155337716.png)
 
-![image-20221020155439462](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155439462.png)
+```powershell
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx1
+  namespace: dev
+spec:
+  containers:
+  - image: nginx:1.17.1
+    name: pod
+    ports:
+    - name: nginx-port
+      containerPort: 80
+      protocol: TCP
+```
 
-![image-20221020155501925](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155501925.png)
+```powershell
+[root@master ~]# kubectl  create  -f  pod-nginx.yaml
 
-![image-20221020155533564](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155533564.png)
+[root@master ~]# kubectl label pod nginx1 -n dev version=1.0  --overwrite
 
-![image-20221020155733110](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020155733110.png)
+[root@master ~]# kubectl  get pods -n dev
+
+[root@master ~]# kubectl get pods -n dev  --show-labels
+
+# 筛选标签
+[root@master ~]# kubectl get pod -n dev -l "version=2.0"  --show-labels
+
+[root@master ~]# kubectl get pod -n dev -l "version!=2.0" --show-labels
+
+#删除标签,version后面是一个减号
+[root@master ~]# kubectl label pod nginx -n dev tier-
+
+[root@master ~]# kubectl get pods -n dev  --show-labels
+```
+
+![image-20221110095352081](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221110095352081.png)
+
+![image-20221110095904891](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221110095904891.png)
+
+![image-20221110100055980](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221110100055980.png)
 
 **配置方式**
 
@@ -1607,41 +1651,47 @@ spec:
 **命令操作**
 
 ~~~powershell
+[root@master ~]# kubectl delete ns dev
+
+[root@master ~]# kubectl create ns dev
+
+# 查看创建的Pod,deployment的信息
+[root@master ~]# kubectl get deployment,pods -n dev
+
 # 命令格式: kubectl run deployment名称  [参数] 
 # --image  指定pod的镜像
 # --port   指定端口
 # --replicas  指定创建pod数量，如果不指定的话则replicas默认为1，以下这三个是由一个Deployment创建的
 # --namespace  指定namespace
 [root@master ~]# kubectl run nginx --image=nginx:1.17.1 --port=80 --replicas=3 -n dev
-deployment.apps/nginx created
 
-# 查看创建的Pod
-[root@master ~]# kubectl get pods -n dev
-
-# 查看deployment的信息
-[root@master ~]# kubectl get deploy -n dev
-
+# 查看创建的Pod,deployment的信息
 # UP-TO-DATE：成功升级的副本数量
 # AVAILABLE：可用副本的数量
-[root@master ~]# kubectl get deploy -n dev -o wide
+[root@master ~]# kubectl get deployment,pods -n dev
 
 # 查看deployment的详细信息
 [root@master ~]# kubectl describe deploy nginx -n dev
-  
-# 删除，一旦删除Deployment则对应的pod也会被删除的
-[root@master ~]# kubectl delete deploy nginx -n dev
-deployment.apps "nginx" deleted
 ~~~
 
 ![image-20221020161409366](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020161409366.png)
 
-![image-20221020161434317](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020161434317.png)
+![image-20221110101158364](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221110101158364.png)
 
-![image-20221020161836100](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020161836100.png)
+![image-20221110101324051](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221110101324051.png)
 
-![image-20221020161907675](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020161907675.png)
+![image-20221110101236065](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221110101236065.png)
 
-![image-20221020161958200](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020161958200.png)
+```powershell
+# 查看标签
+[root@master ~]# kubectl get pods  -n dev --show-labels
+
+# 删除，一旦删除Deployment则对应的pod也会被删除的
+[root@master ~]# kubectl delete deploy nginx -n dev
+
+# Teminateing是正在删除的状态
+[root@master ~]# kubectl get pods  -n dev 
+```
 
 ![image-20221020162039323](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020162039323.png)
 
@@ -1689,8 +1739,6 @@ spec:
 
 ##  Service
 
-
-
 通过上节课的学习，已经能够利用Deployment来创建一组Pod来提供具有高可用性的服务。
 
 虽然每个Pod都会分配一个单独的Pod IP，然而却存在如下两问题：
@@ -1715,12 +1763,12 @@ Service可以看作是一组同类Pod**对外的访问接口**。借助Service�
 **操作一：创建集群内部可访问的Service**
 
 ~~~powershell
-# 暴露Service，ClusterIP中的C是最大的
+# 暴露Service，ClusterIP是指集群IP（只有集群内部可访问），port是指service的端口，target-port是指转发到pod的该端口
 [root@master ~]# kubectl expose deploy nginx --name=svc-nginx1 --type=ClusterIP --port=80 --target-port=80 -n dev
-service/svc-nginx1 exposed
 
 # 查看service
-[root@master ~]# kubectl get svc svc-nginx -n dev -o wide
+[root@master ~]# kubectl get service -n dev
+[root@master ~]# kubectl get svc -n dev 
 
 # 这里产生了一个CLUSTER-IP，这就是service的IP，在Service的生命周期中，这个地址是不会变动的
 # 可以通过这个IP访问当前service对应的POD
@@ -1729,16 +1777,17 @@ service/svc-nginx1 exposed
 
 ![image-20221020164539860](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221020164539860.png)
 
+![image-20221110103542684](https://mdmdmdmd.oss-cn-beijing.aliyuncs.com/img/image-20221110103542684.png)
+
 **操作二：创建集群外部也可访问的Service**
 
 ~~~powershell
 # 上面创建的Service的type类型为ClusterIP，这个ip地址只用集群内部可访问
 # 如果需要创建外部也可以访问的Service，需要修改type为NodePort
 [root@master ~]# kubectl expose deploy nginx --name=svc-nginx2 --type=NodePort --port=80 --target-port=80 -n dev
-service/svc-nginx2 exposed
 
 # 此时查看，会发现出现了NodePort类型的Service，而且有一对Port
-[root@master ~]# kubectl get svc  svc-nginx-1  -n dev -o wide
+[root@master ~]# kubectl get svc -n dev 
 
 # 接下来就可以通过集群外的主机访问 节点IP:307408访问服务了
 # 例如在的电脑主机上通过浏览器访问下面的地址
@@ -4145,7 +4194,7 @@ etcd-master                       14m          145Mi
 [root@master 1.8+]# kubectl run nginx --image=nginx:latest --requests=cpu=100m -n dev
 # 创建service
 [root@master 1.8+]# kubectl expose deployment nginx --type=NodePort --port=80 -n dev
-
+ 
 # 查看
 [root@master 1.8+]# kubectl get deployment,pod,svc -n dev
 NAME                    READY   UP-TO-DATE   AVAILABLE   AGE
